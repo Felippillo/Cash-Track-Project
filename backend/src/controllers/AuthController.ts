@@ -1,9 +1,9 @@
-import { Request, Response } from "express";
-import User from "../models/User";
-import { checkPassword, hashPassword } from "../utils/auth";
-import { generateToken } from "../utils/token";
-import { AuthEmail } from "../emails/AuthEmail";
-import { generateJWT } from "../utils/jws";
+import { Request, Response } from "express"
+import User from "../models/User"
+import { checkPassword, hashPassword } from "../utils/auth"
+import { generateToken } from "../utils/token"
+import { AuthEmail } from "../emails/AuthEmail"
+import { generateJWT } from "../utils/jws"
 
 export class AuthController {
     static createAccount = async (req: Request, res: Response) => {
@@ -138,4 +138,43 @@ export class AuthController {
 
     }
 
+    static user = async (req: Request, res: Response) => {
+        res.json(req.user)
+    }
+
+    static updateCurrentUserPassword = async (req: Request, res: Response) => {
+
+        const { current_password, password } = req.body
+        const { id } = req.user
+
+        const user = await User.findByPk(id)
+
+        const isPasswordCorrect = await checkPassword(current_password, user.password)
+        if (!isPasswordCorrect) {
+            const error = new Error('La contraseña actual es incorrecta')
+            return res.status(401).json({ error: error.message })
+        }
+
+        user.password = await hashPassword(password)
+        await user.save()
+        res.json('Contraseña actualizada exitosamente')
+
+    }
+
+    static checkPassword = async (req: Request, res: Response) => {
+
+        const { password } = req.body
+        const { id } = req.user
+
+        const user = await User.findByPk(id)
+
+        const isPasswordCorrect = await checkPassword(password, user.password)
+        if (!isPasswordCorrect) {
+            const error = new Error('La contraseña es incorrecta')
+            return res.status(401).json({ error: error.message })
+        }
+
+        res.json('Contraseña verificada exitosamente')
+
+    }
 }

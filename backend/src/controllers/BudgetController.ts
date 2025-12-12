@@ -11,7 +11,9 @@ export class BudgetController {
                 order: [
                     ['createdAt', 'DESC']
                 ],
-                //TODO: Filtrar por usuario autenticado
+                where: {
+                    userId: req.user.id
+                }
             })
             res.json(budgets)
         } catch (error) {
@@ -22,6 +24,7 @@ export class BudgetController {
     static create = async (req: Request, res: Response) => {
         try {
             const budget = new Budget(req.body)
+            budget.userId = req.user.id
             await budget.save()
             res.status(201).json('Presupuesto creado correctamente')
         } catch (error) {
@@ -33,6 +36,7 @@ export class BudgetController {
         const budget = await Budget.findByPk(req.budget.id, {
             include: [Expense]
         })
+
         res.json(budget)
     }
 

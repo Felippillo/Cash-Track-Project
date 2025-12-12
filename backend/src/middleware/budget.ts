@@ -55,3 +55,13 @@ export const validateBudgetInput = async (req: Request, res: Response, next: Nex
         .run(req)
     next()
 }
+
+
+export function hasAccess(req: Request, res: Response, next: NextFunction) {
+
+    if (req.budget!.userId !== req.user.id) {
+        const error = new Error('Acción no autorizada')
+        return res.status(403).json({ error: error.message })
+    }
+    next()
+}
